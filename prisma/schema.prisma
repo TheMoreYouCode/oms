@@ -1,0 +1,239 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- AUTHENTICATION ---
+
+model Session {
+  id             String  @id @unique
+  user_id        String
+  active_expires BigInt
+  idle_expires   BigInt
+  user           Contact @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model Key {
+  id              String  @id @unique
+  hashed_password String?
+  user_id         String
+  user            Contact @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+// --- ACCOUNTING ---
+
+model Voucher {
+  // default fields
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // custom fields
+  number String      @unique
+  type   VoucherType
+  draft  Boolean
+  items  LineItem[]
+
+  // relations
+  merchant   Business @relation(fields: [merchantId], references: [id], name: "merchant")
+  merchantId String
+  buyer      Business @relation(fields: [buyerId], references: [id], name: "buyer")
+  buyerId    String
+
+  @@unique([number, merchantId])
+}
+
+model Business {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name      String?
+  address   Address @relation(fields: [addressId], references: [id])
+  addressId String
+
+  website  String
+  taxId    String
+  currency String
+
+  contacts BusinessContacts[]
+
+  vouchersOut Voucher[] @relation(name: "merchant")
+  vouchersIn  Voucher[] @relation(name: "buyer")
+}
+
+model BusinessContacts {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  role    RoleType
+  default Boolean  @default(false)
+
+  phone      String?
+  mobile     String?
+  department String?
+
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String
+  contact    Contact  @relation(fields: [contactId], references: [id])
+  contactId  String
+
+  @@unique([businessId, contactId])
+}
+
+model Address {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  line1   String
+  line2   String?
+  city    String
+  state   String
+  zip     String
+  country String
+
+  businesses Business[]
+  Location   Location[]
+}
+
+model LineItem {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product     Product @relation(fields: [productId], references: [id])
+  productId   String
+  item        Item?   @relation(fields: [itemId], references: [id])
+  itemId      String?
+  description String
+
+  quantity Int
+  price    Int
+  taxRate  TaxRate
+  unit     UnitType
+
+  invoice   Voucher @relation(fields: [invoiceId], references: [id])
+  invoiceId String
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  firstName String
+  lastName  String
+  mobile    String?
+
+  auth_session Session[]
+  key          Key[]
+
+  businesses BusinessContacts[]
+}
+
+enum VoucherType {
+  INVOICE
+  QUOTE
+  DELIVERY_NOTE
+}
+
+enum TaxRate {
+  NONE
+  R7
+  R19
+}
+
+enum RoleType {
+  OWNER
+  ACCOUNTANT
+  EMPLOYEE
+}
+
+// --- INVENTORY ---
+
+model Product {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  description String?
+  sku         String
+
+  type  ProductType
+  items Item[]
+
+  prices  Price[]
+  taxRate TaxRate
+
+  LineItem LineItem[]
+}
+
+model Price {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  price Int
+  unit  UnitType
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+}
+
+model Item {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quantity Int
+
+  location   Location @relation(fields: [locationId], references: [id])
+  locationId String
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+
+  LineItem LineItem[]
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  description String?
+  items       Item[]
+
+  address   Address @relation(fields: [addressId], references: [id])
+  addressId String
+}
+
+enum ProductType {
+  ITEM
+  BULK
+  SERVICE
+}
+
+enum UnitType {
+  PIECES
+  HOURS
+  DAYS
+  KMS
+}

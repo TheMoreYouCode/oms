@@ -618,7 +618,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:6.1.0":
+"@prisma/client@npm:^6.1.0":
   version: 6.1.0
   resolution: "@prisma/client@npm:6.1.0"
   peerDependencies:
@@ -2902,7 +2902,7 @@ __metadata:
   dependencies:
     "@eslint/compat": "npm:^1.2.3"
     "@playwright/test": "npm:^1.45.3"
-    "@prisma/client": "npm:6.1.0"
+    "@prisma/client": "npm:^6.1.0"
     "@sveltejs/adapter-auto": "npm:^3.0.0"
     "@sveltejs/kit": "npm:^2.0.0"
     "@sveltejs/vite-plugin-svelte": "npm:^4.0.0"

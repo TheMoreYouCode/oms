@@ -44,7 +44,8 @@
 		"@prisma/client": "^6.2.1",
 		"@tailwindcss/container-queries": "^0.1.1",
 		"@tailwindcss/forms": "^0.5.9",
-		"@tailwindcss/typography": "^0.5.15"
+		"@tailwindcss/typography": "^0.5.15",
+		"typeid-js": "^1.1.0"
 	},
 	"packageManager": "yarn@4.6.0"
 }

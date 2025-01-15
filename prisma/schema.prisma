@@ -70,13 +70,13 @@ model Business {
   taxId    String
   currency String
 
-  contacts BusinessContacts[]
+  contacts BusinessContact[]
 
   vouchersOut Voucher[] @relation(name: "merchant")
   vouchersIn  Voucher[] @relation(name: "buyer")
 }
 
-model BusinessContacts {
+model BusinessContact {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -144,7 +144,7 @@ model Contact {
   auth_session Session[]
   key          Key[]
 
-  businesses BusinessContacts[]
+  businesses BusinessContact[]
 }
 
 enum VoucherType {
